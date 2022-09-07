@@ -1,82 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <url>
+    <loc>https://yuliao0214.github.io/2022/08/15/b4-workflow-tool/</loc>
+    
+    <lastmod>2022-09-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/2022/09/07/lockdep-design/</loc>
+    
+    <lastmod>2022-09-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/2022/07/24/qemu-debian/</loc>
+    
+    <lastmod>2022-09-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/2022/05/01/riscv-linux-timer/</loc>
+    
+    <lastmod>2022-07-17</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/about/index.html</loc>
+    
+    <lastmod>2022-07-17</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
 
+  <url>
+    <loc>https://yuliao0214.github.io/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
 
-<url>
-  <loc>https://yuliao0214.github.io/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/archives/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/categories/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/tags/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/links/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/about/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/2022/07/24/qemu-debian/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/categories/QEMU/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/tags/QEMU/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/tags/Linux/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/2022/05/01/riscv-linux-timer/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/categories/Linux-Kernel/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/tags/RISC-V/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
-<url>
-  <loc>https://yuliao0214.github.io/tags/kernel/</loc>
-  <lastmod>2022-07-24T14:50:31+00:00</lastmod>
-  <priority>0.80</priority>
-</url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/tags/RISC-V/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/tags/kernel/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/tags/QEMU/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/tags/Linux/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/tags/lock/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/tags/tools/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
 
-
+  
+  <url>
+    <loc>https://yuliao0214.github.io/categories/Linux-Kernel/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/categories/QEMU/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/categories/kernel/</loc>
+    <lastmod>2022-09-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
 </urlset>
