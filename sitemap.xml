@@ -4,7 +4,16 @@
   <url>
     <loc>https://yuliao0214.github.io/2022/10/29/linux-channel/</loc>
     
-    <lastmod>2022-10-28</lastmod>
+    <lastmod>2022-10-30</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yuliao0214.github.io/2022/05/01/riscv-linux-timer/</loc>
+    
+    <lastmod>2022-10-30</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -41,15 +50,6 @@
     <loc>https://yuliao0214.github.io/2022/07/24/qemu-debian/</loc>
     
     <lastmod>2022-09-07</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>https://yuliao0214.github.io/2022/05/01/riscv-linux-timer/</loc>
-    
-    <lastmod>2022-07-17</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -109,13 +109,6 @@
 
   
   <url>
-    <loc>https://yuliao0214.github.io/categories/Linux/</loc>
-    <lastmod>2022-10-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://yuliao0214.github.io/categories/kernel/</loc>
     <lastmod>2022-10-30</lastmod>
     <changefreq>weekly</changefreq>
@@ -124,13 +117,6 @@
   
   <url>
     <loc>https://yuliao0214.github.io/categories/QEMU/</loc>
-    <lastmod>2022-10-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://yuliao0214.github.io/categories/Linux-Kernel/</loc>
     <lastmod>2022-10-30</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
