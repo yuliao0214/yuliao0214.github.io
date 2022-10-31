@@ -16,27 +16,28 @@
   <meta name="author" content="Yu Liao">
   <meta name="keywords" content="">
   
-    <meta name="description" content="本文通过 debootstrap 构建了 debian&#x2F;ubuntu 文件系统，在 QEMU arm64 环境上运行，可以很方便的复用 ubuntu&#x2F;debian 软件生态">
+    <meta name="description" content="VIM 使用总结">
 <meta property="og:type" content="article">
-<meta property="og:title" content="利用 debootstrap 构建 Debian&#x2F;Ubuntu 文件系统">
-<meta property="og:url" content="https://yuliao0214.github.io/2022/07/24/qemu-debian/index.html">
+<meta property="og:title" content="編集者の神: VIM 总结">
+<meta property="og:url" content="https://yuliao0214.github.io/2022/06/03/vim/index.html">
 <meta property="og:site_name" content="liaoyu&#39;s blog">
-<meta property="og:description" content="本文通过 debootstrap 构建了 debian&#x2F;ubuntu 文件系统，在 QEMU arm64 环境上运行，可以很方便的复用 ubuntu&#x2F;debian 软件生态">
+<meta property="og:description" content="VIM 使用总结">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://yuliao0214.github.io/img/Slirp_concept.png">
-<meta property="article:published_time" content="2022-07-24T12:43:00.000Z">
-<meta property="article:modified_time" content="2022-09-07T14:37:49.789Z">
+<meta property="og:image" content="https://yuliao0214.github.io/img/visual.png">
+<meta property="og:image" content="https://yuliao0214.github.io/img/visual-line.png">
+<meta property="og:image" content="https://yuliao0214.github.io/img/visual-block.png">
+<meta property="article:published_time" content="2022-06-03T12:43:00.000Z">
+<meta property="article:modified_time" content="2022-10-31T16:40:48.646Z">
 <meta property="article:author" content="Yu Liao">
-<meta property="article:tag" content="Linux">
-<meta property="article:tag" content="QEMU">
+<meta property="article:tag" content="tools">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://yuliao0214.github.io/img/Slirp_concept.png">
+<meta name="twitter:image" content="https://yuliao0214.github.io/img/visual.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
   
   
-  <title>利用 debootstrap 构建 Debian/Ubuntu 文件系统 - liaoyu&#39;s blog</title>
+  <title>編集者の神: VIM 总结 - liaoyu&#39;s blog</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -228,7 +229,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle">利用 debootstrap 构建 Debian/Ubuntu 文件系统</span>
+            <span id="subtitle">編集者の神: VIM 总结</span>
           
         </div>
 
@@ -239,8 +240,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-07-24 20:43" pubdate>
-          July 24, 2022 pm
+        <time datetime="2022-06-03 20:43" pubdate>
+          June 3, 2022 pm
         </time>
       </span>
     
@@ -251,7 +252,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.8k words
+          659 words
         
       </span>
     
@@ -262,7 +263,7 @@
         
         
         
-          24 mins
+          6 mins
         
       </span>
     
@@ -308,72 +309,68 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">利用 debootstrap 构建 Debian/Ubuntu 文件系统</h1>
+            <h1 style="display: none">編集者の神: VIM 总结</h1>
             
             
               <div class="markdown-body">
                 
-                <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>构建根文件系统常见的方法有 busybox, buildroot, yocto 等， 对应的资料网络上都很丰富，缺点是功能过于简单或者步骤过于复杂。采用 Ubuntu&#x2F;Debian 文件系统是个不错的选择，通过 apt 能够复用 ubuntu&#x2F;debian 软件生态，自动解决软件依赖。debootstrap 是一个用来构建 Debian base 系统(根文件系统)的工具，通过 debootstrap 可以很轻松地构建出一个 Debian&#x2F;Ubuntu 文件系统。</p>
-<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
-<li>安装 qemu-system-aarch64</li>
-<li>安装 qemu-user-static</li>
-<li>安装 debootstrap</li>
-<li>正确配置并编译好的内核镜像</li>
+                <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>总结个人常用的操作，能够覆盖绝大多数场景，除了怎么退出vim(<a target="_blank" rel="noopener" href="https://www.runoob.com/linux/linux-vim.html">菜鸟教程</a>)。</p>
+<h2 id="光标移动"><a href="#光标移动" class="headerlink" title="光标移动"></a>光标移动</h2><ul>
+<li><code>Ctrl + d</code> &amp; <code>ctrl + u</code> 向下&#x2F;向上翻半页</li>
+<li><code>h</code> <code>j</code> <code>k</code> <code>l</code> &#x3D; <code>←</code> <code>↓</code> <code>↑</code> <code>→</code></li>
+<li><code>gg</code> &amp; <code>G</code> 跳到第一行&#x2F;最后一行</li>
+<li><code>H</code>, <code>M</code>, <code>L</code>, 跳到当前屏幕的第一行(High)，中间(Middle)，最后一行(Low)</li>
+<li><code>b</code>, <code>w</code> 以一个word为单位向前&#x2F;先后移动光标</li>
 </ul>
-<h2 id="文件系统构建"><a href="#文件系统构建" class="headerlink" title="文件系统构建"></a>文件系统构建</h2><p>首先创建一个 ext4 文件系统并挂载，512 MiB 大小就足够了。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">mkdir</span> tmp-rootfs<br>sudo <span class="hljs-built_in">dd</span> <span class="hljs-keyword">if</span>=/dev/zero of=rootfs-debian.ext4 bs=1MiB count=512<br>sudo mkfs.ext4 rootfs-debian.ext4<br>sudo mount rootfs-debian.ext4 tmp-rootfs<br></code></pre></td></tr></table></figure>
-
-<p>debootstrap 简要用法如下，详细用法可查看 <code>man debootstrap</code> 。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">debootstrap [OPTION]... &lt;suite&gt; &lt;target&gt; &lt;mirror&gt;<br>debootstrap [OPTION] --second-stage<br></code></pre></td></tr></table></figure>
+<h2 id="光标选中"><a href="#光标选中" class="headerlink" title="光标选中"></a>光标选中</h2><p>按下按键后松开就进入了可视模式，然后用上面提到的光标移动按键选中需要的文本。可视模式分为一下三种，看图就明白了：</p>
 <ul>
-<li>suite 是指版本代号，如 <a target="_blank" rel="noopener" href="https://wiki.debian.org/DebianReleases#Production_Releases">debian</a> 的 buster 或者 <a target="_blank" rel="noopener" href="https://wiki.ubuntu.com/Releases">ubuntu</a> 的 jammy，填第一个单词的小写就行了</li>
-<li>target 是指目标架构，如 arm64</li>
-<li>mirror 是指构建 Debian&#x2F;Ubuntu 的镜像源</li>
+<li><p>字符模式：v<br><img src="/img/visual.png" srcset="/img/loading.gif" lazyload alt="visual"></p>
+</li>
+<li><p>行模式：V<br><img src="/img/visual-line.png" srcset="/img/loading.gif" lazyload alt="visual"></p>
+</li>
+<li><p>块模式：ctrl+v<br><img src="/img/visual-block.png" srcset="/img/loading.gif" lazyload alt="visual"></p>
+</li>
 </ul>
-<p>这里我们用华为的镜像源构建 Debian buster 版本 arm64 系统：</p>
-<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs console">sudo debootstrap --verbose --arch=arm64 buster tmp-rootfs http://mirrors.huaweicloud.com/debian<br></code></pre></td></tr></table></figure>
-<p>同样，如果想构建 Ubuntu 系统则修改 suite 和 mirror 即可：</p>
-<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs console">sudo debootstrap --verbose --arch=arm64 jammy tmp-rootfs http://mirrors.huaweicloud.com/ubuntu-ports<br></code></pre></td></tr></table></figure>
-<p>执行结束后就会在我们创建的 tmp-rootfs 目录生成所需要的 Debian 系统。</p>
-<h2 id="文件系统配置"><a href="#文件系统配置" class="headerlink" title="文件系统配置"></a>文件系统配置</h2><p>文件系统构建完成后，我们还需要配置网络、安装软件，配置用户等。</p>
-<p>首先拷贝之前安装的 qemu-static 工具到我们的文件系统，因为我们这里的 host 是 x86 架构，通过 host 配置系统时需要运行文件系统内的 arm64 架构的程序，需要 qemu-aarch64-static 对进行用户模式模拟。</p>
-<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs console">sudo cp /usr/bin/qemu-aarch64-static tmp-rootfs/usr/bin<br></code></pre></td></tr></table></figure>
-<p>之后 chroot 到文件系统：</p>
-<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs console">sudo chroot tmp-rootfs<br></code></pre></td></tr></table></figure>
-
-<p>按照个人需求创建用户和修改密码：</p>
-<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs console">passwd<br>...<br></code></pre></td></tr></table></figure>
-<p>同样按照个人需求安装软件：</p>
-<figure class="highlight console"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs console">apt install net-tools vim wget curl<br></code></pre></td></tr></table></figure>
-
-<p>最后还需要配置网络，QMEU 网络配置详情查看 <a target="_blank" rel="noopener" href="https://wiki.qemu.org/Documentation/Networking">QEMU Networking</a>，这里配置最简单的用户模式网卡。<br><img src="/img/Slirp_concept.png" srcset="/img/loading.gif" lazyload alt="QEMU User Networking"></p>
-<p>同时具体配置方法和系统也相关，以 Debian buster 为例，网络是由 <code>/etc/network/interfaces</code> 文件配置的，将以下内容写入该文件。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs bash">auto lo<br>iface lo inet loopback<br><br>auto eth0<br>iface eth0 inet dhcp<br>  wait-delay 15<br>  hostname $(hostname)<br></code></pre></td></tr></table></figure>
-<p>对于 QEMU 用户模式网卡，需要配置 DNS 服务器为 10.0.2.3，将以下内容写入 <code>/etc/resolv.conf</code>。注意：此时 DNS 服务器地址和 host 不一样了，因此在 host 上 chroot 后安装软件会失败。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">echo</span> <span class="hljs-string">&quot;nameserver 10.0.2.3&quot;</span> &gt; /etc/resolv.conf<br></code></pre></td></tr></table></figure>
-<p>最后 umount 文件系统就大功告成了 :)</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sudo umount tmp-rootfs<br></code></pre></td></tr></table></figure>
-<h2 id="运行-QEMU"><a href="#运行-QEMU" class="headerlink" title="运行 QEMU"></a>运行 QEMU</h2><p>通过如下命令启动 QEMU 环境</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">qemu-system-aarch64 -M virt -cpu cortex-a53 -nographic -smp 8 -kernel Image \<br>    -append <span class="hljs-string">&quot;rootwait root=/dev/vda rw console=ttyAMA0&quot;</span> \<br>    -netdev user,<span class="hljs-built_in">id</span>=eth0,hostfwd=tcp::17777-:22 -device virtio-net-device,netdev=eth0 \<br>    -drive file=rootfs-debian.ext4,<span class="hljs-keyword">if</span>=none,format=raw,<span class="hljs-built_in">id</span>=hd0 -device virtio-blk-device,drive=hd0 <br></code></pre></td></tr></table></figure>
-
-<h2 id="遇到的问题"><a href="#遇到的问题" class="headerlink" title="遇到的问题"></a>遇到的问题</h2><h3 id="Ubuntu-jammy-网络异常"><a href="#Ubuntu-jammy-网络异常" class="headerlink" title="Ubuntu jammy 网络异常"></a>Ubuntu jammy 网络异常</h3><p>使用 Ubuntu jammy 发现通过 <code>netplan</code> 配置网络不成功，每次启动网卡没有 up。</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">network:</span><br>  <span class="hljs-attr">version:</span> <span class="hljs-number">2</span><br>  <span class="hljs-attr">renderer:</span> <span class="hljs-string">NetworkManager</span><br>  <span class="hljs-attr">ethernets:</span><br>    <span class="hljs-attr">eth0:</span><br>      <span class="hljs-attr">dhcp4:</span> <span class="hljs-literal">true</span><br></code></pre></td></tr></table></figure>
-<p>怀疑和 <code>NetworkManager.service</code> 没有起来相关，同时系统 <code>systemd-resolved.service</code> 会自动生成错误的 DNS 地址（和 host 的相同），目前解决办法只能手动配置 DNS ，网卡和路由。</p>
-<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs nginx"><span class="hljs-attribute">echo</span> <span class="hljs-string">&quot;nameserver 10.0.2.3&quot;</span> &gt; /etc/resolv.conf<br>ifconfig eth0 <span class="hljs-number">10.0.2.15</span>  netmask <span class="hljs-number">255.255.255.0</span><br>route add default gw <span class="hljs-number">10.0.2.2</span><br></code></pre></td></tr></table></figure>
-<p>更新：安装 nmcli 后问题解决（Ubuntu 太坑了，这种核心软件没有提前安装好），使用方法可以看看这篇文章 <a target="_blank" rel="noopener" href="https://www.liquidweb.com/kb/how-to-install-and-configure-nmcli/">How to Install and Configure Nmcli
-</a></p>
-<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cmake">apt <span class="hljs-keyword">install</span> network-manager<br></code></pre></td></tr></table></figure>
-<p>然后用 <code>netplan</code> 配置网卡</p>
-<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">vim</span> /etc/netplan/<span class="hljs-number">01</span>-network-manager-<span class="hljs-literal">all</span>.yaml<br></code></pre></td></tr></table></figure>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">network:</span><br>  <span class="hljs-attr">version:</span> <span class="hljs-number">2</span><br>  <span class="hljs-attr">renderer:</span> <span class="hljs-string">NetworkManager</span><br>  <span class="hljs-attr">ethernets:</span><br>    <span class="hljs-attr">eth0:</span><br>      <span class="hljs-attr">dhcp4:</span> <span class="hljs-literal">true</span><br>      <span class="hljs-attr">nameservers:</span><br>        <span class="hljs-attr">addresses:</span> [<span class="hljs-number">10.0</span><span class="hljs-number">.2</span><span class="hljs-number">.3</span>]<br><br></code></pre></td></tr></table></figure>
-<h2 id="Todo"><a href="#Todo" class="headerlink" title="Todo"></a>Todo</h2><ul>
-<li>完善 netplan 方式配置网卡</li>
-<li>完善 nmcli 使用方法</li>
-<li>写一篇文章整理 QEMU 网卡配置，包括tap&#x2F;tun 模式网卡配置</li>
-<li>QEMU 使用其他模式网卡时 debian&#x2F;ubuntu 网络怎么配置</li>
-<li>Linux kernel tap&#x2F;tun 原理分析</li>
-<li>将构建过程整理成脚本，提交到 <a target="_blank" rel="noopener" href="https://github.com/yuliao0214/qemu-vm">qemu-vm</a> 仓库</li>
+<blockquote>
+<p>Tip: <code>viw</code> 选中一个单词</p>
+</blockquote>
+<h2 id="编辑"><a href="#编辑" class="headerlink" title="编辑"></a>编辑</h2><p>结合前面提到的光标选中和光标移动后就可以复制、删除和粘贴文本了</p>
+<h3 id="插入"><a href="#插入" class="headerlink" title="插入"></a>插入</h3><ul>
+<li><code>i</code> &amp; <code>a</code> 当前光标输入和当前光标下一个位置输入</li>
+<li><code>o</code> &amp; <code>O</code> 在下一行&#x2F;上一行处输入</li>
+<li><code>r</code> 替换光标字符</li>
+<li><code>I</code> 配合 visual-block 模式可以实现多行编辑</li>
 </ul>
+<h3 id="删除"><a href="#删除" class="headerlink" title="删除"></a>删除</h3><ul>
+<li><code>x</code> 删除字符</li>
+<li><code>dd</code> 删除行</li>
+</ul>
+<blockquote>
+<p>Tip: <code>diw</code> 删除一个单词</p>
+</blockquote>
+<h3 id="复制"><a href="#复制" class="headerlink" title="复制"></a>复制</h3><ul>
+<li><code>y</code> 复制已选中的文本</li>
+<li><code>yy</code> 复制光标所在行</li>
+</ul>
+<h3 id="粘贴"><a href="#粘贴" class="headerlink" title="粘贴"></a>粘贴</h3><p><code>p</code> 粘贴到光标后<br><code>P</code> 粘贴到光标后</p>
+<h2 id="撤销"><a href="#撤销" class="headerlink" title="撤销"></a>撤销</h2><ul>
+<li><code>u</code> 撤销上一次操作</li>
+<li><code>Ctrl + r</code> 和上面相反的效果</li>
+</ul>
+<h2 id="多窗口编辑"><a href="#多窗口编辑" class="headerlink" title="多窗口编辑"></a>多窗口编辑</h2><ul>
+<li>vim -O file1 file2</li>
+<li><code>Crtl + w + v</code>复制当前窗口（左右分割）</li>
+<li><code>Crtl + w + c</code>关闭当前窗口</li>
+<li><code>Ctrl + w + w</code>在多窗口间切换</li>
+<li>:e file 更改当前文件</li>
+</ul>
+<h2 id="插件"><a href="#插件" class="headerlink" title="插件"></a>插件</h2><ul>
+<li>ctags &amp; cscope 跳转</li>
+<li>NERDTreeToggle 显示目录</li>
+<li>taglist 显示tag</li>
+<li>gruvbox 很好看的主题，有dark&#x2F;light两种颜色</li>
+</ul>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>使用管道（Pipe）<br>cmd | vim -</p>
 
                 
               </div>
@@ -392,7 +389,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/QEMU/" class="category-chain-item">QEMU</a>
+  <a href="/categories/tools/" class="category-chain-item">tools</a>
   
   
 
@@ -407,9 +404,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Linux/">#Linux</a>
-      
-        <a href="/tags/QEMU/">#QEMU</a>
+        <a href="/tags/tools/">#tools</a>
       
     </div>
   
@@ -421,8 +416,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>利用 debootstrap 构建 Debian/Ubuntu 文件系统</div>
-      <div>https://yuliao0214.github.io/2022/07/24/qemu-debian/</div>
+      <div>編集者の神: VIM 总结</div>
+      <div>https://yuliao0214.github.io/2022/06/03/vim/</div>
     </div>
     <div class="license-meta">
       
@@ -434,7 +429,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>Posted on</div>
-          <div>July 24, 2022</div>
+          <div>June 3, 2022</div>
         </div>
       
       
@@ -470,9 +465,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/08/15/b4-workflow-tool/" title="获取内核邮件列表补丁以及邮件">
+                      <a href="/2022/07/24/qemu-debian/" title="利用 debootstrap 构建 Debian/Ubuntu 文件系统">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">获取内核邮件列表补丁以及邮件</span>
+                        <span class="hidden-mobile">利用 debootstrap 构建 Debian/Ubuntu 文件系统</span>
                         <span class="visible-mobile">Previous</span>
                       </a>
                     
@@ -480,8 +475,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/06/03/vim/" title="編集者の神: VIM 总结">
-                        <span class="hidden-mobile">編集者の神: VIM 总结</span>
+                      <a href="/2022/05/01/riscv-linux-timer/" title="RISC-V timer 在 Linux 中的实现">
+                        <span class="hidden-mobile">RISC-V timer 在 Linux 中的实现</span>
                         <span class="visible-mobile">Next</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
