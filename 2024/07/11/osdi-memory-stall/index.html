@@ -1,0 +1,708 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Yu Liao">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="OSDI paper分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="[OSDI论文阅读] Harvesting Memory-bound CPU Stall Cycles  in Software with MSH">
+<meta property="og:url" content="https://yuliao0214.github.io/2024/07/11/osdi-memory-stall/index.html">
+<meta property="og:site_name" content="liaoyu&#39;s blog">
+<meta property="og:description" content="OSDI paper分析">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://yuliao0214.github.io/img/top-down-hierarchy.png">
+<meta property="og:image" content="https://yuliao0214.github.io/img/msh-topdown.png">
+<meta property="og:image" content="https://yuliao0214.github.io/img/msh-overview.png">
+<meta property="og:image" content="https://yuliao0214.github.io/img/msh-opt.png">
+<meta property="og:image" content="https://yuliao0214.github.io/img/msh-runtime.png">
+<meta property="og:image" content="https://yuliao0214.github.io/img/msh-result.png">
+<meta property="article:published_time" content="2024-07-11T02:30:36.000Z">
+<meta property="article:modified_time" content="2024-08-25T18:49:21.266Z">
+<meta property="article:author" content="Yu Liao">
+<meta property="article:tag" content="性能优化">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yuliao0214.github.io/img/top-down-hierarchy.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>[OSDI论文阅读] Harvesting Memory-bound CPU Stall Cycles  in Software with MSH - liaoyu&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yuliao0214.github.io","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":25,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 40vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Yu</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                Home
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                Archives
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                Categories
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                Tags
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                Links
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                About
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">[OSDI论文阅读] Harvesting Memory-bound CPU Stall Cycles  in Software with MSH</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-07-11 10:30" pubdate>
+          July 11, 2024 am
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3.6k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          31 mins
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> views
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">[OSDI论文阅读] Harvesting Memory-bound CPU Stall Cycles  in Software with MSH</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在经典论文 <a target="_blank" rel="noopener" href="https://rcs.uwaterloo.ca/~ali/cs854-f23/papers/topdown.pdf">A Top-Down Method for Performance Analysis and Counters Architecture</a> 里，Ahmad Yasin提出了一种Top-Down的方法，基于微架构分析软件性能，把CPU流水线划分为4个部分：</p>
+<ul>
+<li><p>Frontend Bound, CPU流水线的前端部分(instruction fetch，指令解析等)，由i-cache miss, i-TLB miss等原因造成；</p>
+</li>
+<li><p>Bad Speculation，投机失败导致的流水线被浪费，如分支预测错误情况；</p>
+</li>
+<li><p>Retiring 即正常结束的指令，理论上越高代表程序性能越好；</p>
+</li>
+<li><p>Backend bound 流水线后端部分，可分为Core Bound和Memory Bound，前者偏向于计算单元，后边偏向于由内存访问导致的执行停顿。<br><img src="/img/top-down-hierarchy.png" srcset="/img/loading.gif" lazyload alt="top-down"></p>
+</li>
+</ul>
+<p>本文分析sphinx和masstree软件性能后，发现Memory Bound对两个软件的性能影响最大，在总cycle中的占比分别为25%和31%。</p>
+<p><img src="/img/msh-topdown.png" srcset="/img/loading.gif" lazyload alt="msh-topdown"></p>
+<p>常见的降低Memory-bound Stall Cycles的解决方法为SMT(simultaneous multithreading)，即在一个物理核里有两个线程，共享一部分资源(ALU, FPU, cache等)，当其中一个线程发生Memory-bound时，另一个线程便可以利用这些共享的单元，提高流水线的利用率。然而SMT技术也存在不足，比如不可配置，如给定一个SLO，无法在Primaries的延迟和Scavengers的吞吐量之间进行权衡；此外，SMT 也无法完全捕获受Memory Bound导致的的stall cycle，尤其是当并发线程频繁发生cache miss时。这是因为主流的 2 宽度 SMT 没有足够的并发度来捕获大部分Memory stall，虽然可以通过 SMT 的宽度来解决此问题，但需要增加更多硬件资源，而且还加剧了延迟开销问题。</p>
+<p>于是文章提出了一种名为MSH (Memory Stall Harvesting)的软件技术，利用Memory Bound导致的CPU stall cycle来执行额外的指令，针对SMT在Memory Bound方面的不足，用巧妙的软件设计降低了Memory Stall数量。</p>
+<h2 id="设计思路"><a href="#设计思路" class="headerlink" title="设计思路"></a>设计思路</h2><p>文章中高频出现两个词，在此做一下解释：</p>
+<ul>
+<li>Primaries，指主程序；</li>
+<li>Scavengers，清理程序，主程序的协程，在特定时机（如mem stall）切换到清理程序执行。</li>
+</ul>
+<p>MSH设计可分为3部分：</p>
+<ul>
+<li><p>Profile</p>
+</li>
+<li><p>Binary Instrument</p>
+</li>
+<li><p>Runtime Scheduling<br>整体流程如下图：<br><img src="/img/msh-overview.png" srcset="/img/loading.gif" lazyload alt="msh-overview"></p>
+</li>
+</ul>
+<h3 id="Profile"><a href="#Profile" class="headerlink" title="Profile"></a>Profile</h3><p>首先在离线阶段使用性能剖析工具 (本文使用PEBS, LBR, perf)对程序进行性能分析，针对Load指令导致的Memory-bound进行评估，主要考虑L2&#x2F;L3 cache misses率以及代码块的执行次数。根据以下2条逻辑选取符合条件的Load指令：</p>
+<ul>
+<li><p>筛选cache miss率高于阈值的Load指令</p>
+</li>
+<li><p>通过如下公式来评估一条Load指令开销：</p>
+<p>$$<br>Latency Overhead&#x3D;Instruction Frequency×Cache Miss Rate×Memory Access Latency<br>$$</p>
+</li>
+</ul>
+<h3 id="Binary-Instrument"><a href="#Binary-Instrument" class="headerlink" title="Binary Instrument"></a>Binary Instrument</h3><p>即二进制插桩，MSH会在程序二进制中适当位置插入指令，对Primary和Scavengers都需要进行插桩。</p>
+<h4 id="Primary-instrumentation"><a href="#Primary-instrumentation" class="headerlink" title="Primary instrumentation"></a>Primary instrumentation</h4><p>完成Profile后，在选取出来的Load指令前插入一条software prefetch指令，以及一条yield指令。在Runtime阶段，遇到开销较大的Load指令时，由于已经提前做了插桩操作，会将Load访问的地址预取到cache中，同时切换到scavengers线程执行，待合适时机再切换会primary线程，此时cache预取已完成，数据已经在cache中了，就不会导致memory stall出现影响性能。</p>
+<h4 id="Scavenger-instrumentation"><a href="#Scavenger-instrumentation" class="headerlink" title="Scavenger instrumentation"></a>Scavenger instrumentation</h4><p>Scavenger插桩和Primary 方法相同，都是基于Profile的结果，在Load之前插入yield指令，并切换回Primary。有所不同的是，如果两个yield点过于靠近，第二条yield指令会切换到另一个Scavenger程序，而不是Primary。这是因为如果两条yield指令过于靠近，此时Primary的cache prefetch都还没完成，切换回去会导致memory stall，因此切换到另一个Scanvenger程序来避免此问题。</p>
+<p>此外，由于协程切换需要保存上下文，为了减少这部分开销，MSH对循环的代码做了优化，仅对会发生修改的寄存器进行保存恢复操作，例如下图中的循环体中未操作R3和R4寄存器，因此在Loop body里进行协程切换时无需对这两个寄存器进行保存和恢复。</p>
+<p> <img src="/img/msh-opt.png" srcset="/img/loading.gif" lazyload alt="msh-opt"></p>
+<h3 id="Runtime-Scheduling"><a href="#Runtime-Scheduling" class="headerlink" title="Runtime Scheduling"></a>Runtime Scheduling</h3><p>基于以上的分析，MSH必然还涉及Primary和多个Scanvenger的调度，线程管理，资源分配等问题。主要包含如下流程：</p>
+<ul>
+<li><p>Scanvenger初始化，在分配Scanvenger给Primary之前，会对Scanvenger进行初始化，包括加载Scanvenger代码，申请栈空间，设置返回地址。</p>
+</li>
+<li><p>Scanvenger窃取，在给Primary分配一个Scanvenger前，会优先从其他Primary那里窃取Scanvenger，避免重新建立一个新的Scanvenger带来开销。之所以可以被窃取，是由于在线程阻塞或者被终止时会被设置stealable的标志位。</p>
+</li>
+<li><p>Scanvenger获取，当没有stealable的Scanvenger时，会从Scanvenger pool中分配一个，当然分配完成后仍然需要初始化。</p>
+</li>
+</ul>
+<p>核心伪代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">bool</span> <span class="hljs-title function_">steal_scavengers</span><span class="hljs-params">(per_thread_ctx *t)</span><br>&#123;<br>    <span class="hljs-keyword">for</span> (per_thread_ctx *it : thread_list)<br>    &#123;<br>        <span class="hljs-keyword">if</span> (CAS(it-&gt;stealable, <span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>))<br>        &#123;<br>            it-&gt;stolen = migrate_scavengers(t, it);<br>            it-&gt;stealable = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">if</span> (!need_more_scavengers(t))<br>                <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;<br>&#125;<br><span class="hljs-type">void</span> <span class="hljs-title function_">get_scavengers</span><span class="hljs-params">(per_thread_ctx *t)</span><br>&#123;<br>    <span class="hljs-keyword">if</span> (!steal_scavengers(t))<br>    &#123;<br>        fetch_scavengers_from_pool(t);<br>    &#125;<br>&#125;<br><span class="hljs-type">void</span> <span class="hljs-title function_">enter_blockable_call</span><span class="hljs-params">(per_thread_ctx *t)</span><br>&#123;<br>    t-&gt;stealable = <span class="hljs-literal">true</span>;<br>&#125;<br><span class="hljs-type">void</span> <span class="hljs-title function_">exit_blockable_call</span><span class="hljs-params">(per_thread_ctx *t)</span><br>&#123;<br>    <span class="hljs-keyword">while</span> (!CAS(t-&gt;stealable, <span class="hljs-literal">true</span>, <span class="hljs-literal">false</span>)) &#123;&#125;<br>    <span class="hljs-keyword">if</span> (t-&gt;stolen)<br>    &#123;<br>        get_scavengers(t);<br>        update_yield_targets(t-&gt;yield_contexts);<br>        t-&gt;stolen = <span class="hljs-literal">false</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="/img/msh-runtime.png" srcset="/img/loading.gif" lazyload alt="msh-runtime.png"></p>
+<h2 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a>性能测试</h2><ul>
+<li>在关闭SMT的场景，MSH可实现接近SMT 72%的scavengers吞吐量</li>
+<li>如果给出更宽松的延迟 SLO，MSH 可以进一步权衡primary的延迟和scavengers吞吐量</li>
+<li>相比SMT，当scavengers也处于停滞时，MSH 可以充分收集mem stall cycle，并且实现高达 2 倍的吞吐量。<br><img src="/img/msh-result.png" srcset="/img/loading.gif" lazyload alt="msh-result"></li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>文章提供了一个很新颖的软件思路，来降低Memory Bound对程序性能带来的影响，实现了类似SMT的效果。文章的<a target="_blank" rel="noopener" href="https://github.com/sosson97/msh">代码</a>已开源，看了下里面的scavengers是一段无意义的计算程序，和Primary业务程序并没有关联，因此仅仅是减小了memory stall的cycle，并没有实际提高Primary的性能。这个方案实际应用到优化具体业务性能仍然很困难，因为scavengers的代码需要是有意义的，能够在Primary发生memory bound时处理一些辅助任务，因此需要精心构造才行，这部分文章并没有体现。</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p><a target="_blank" rel="noopener" href="https://www.usenix.org/conference/osdi24/presentation/luo">Harvesting Memory-bound CPU Stall Cycles  in Software with MSH</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.intel.com/content/www/us/en/docs/vtune-profiler/cookbook/2024-0/top-down-microarchitecture-analysis-method.html">Top-down Microarchitecture Analysis Method</a></p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2353832">Top-Down性能分析方法（原理篇）：揭秘代码运行瓶颈</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Paper/" class="category-chain-item">Paper</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">#性能优化</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>[OSDI论文阅读] Harvesting Memory-bound CPU Stall Cycles  in Software with MSH</div>
+      <div>https://yuliao0214.github.io/2024/07/11/osdi-memory-stall/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Yu Liao</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>July 11, 2024</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>Licensed under</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">
+              <span class="hint--top hint--rounded" aria-label="SA - Share-alike">
+                <i class="iconfont icon-sa"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/11/08/kprobe/" title="Kprobes 使用与原理介绍">
+                        <span class="hidden-mobile">Kprobes 使用与原理介绍</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;Table of Contents</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>

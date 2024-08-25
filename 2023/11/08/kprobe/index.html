@@ -1,0 +1,689 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/icon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Yu Liao">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="kprobe 流程分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kprobes 使用与原理介绍">
+<meta property="og:url" content="https://yuliao0214.github.io/2023/11/08/kprobe/index.html">
+<meta property="og:site_name" content="liaoyu&#39;s blog">
+<meta property="og:description" content="kprobe 流程分析">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://yuliao0214.github.io/img/ESR_EL1.png">
+<meta property="article:published_time" content="2023-11-08T12:43:00.000Z">
+<meta property="article:modified_time" content="2024-08-25T18:49:21.266Z">
+<meta property="article:author" content="Yu Liao">
+<meta property="article:tag" content="kernel">
+<meta property="article:tag" content="trace">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://yuliao0214.github.io/img/ESR_EL1.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Kprobes 使用与原理介绍 - liaoyu&#39;s blog</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"yuliao0214.github.io","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":25,"cursorChar":"_","loop":false,"scope":["home"]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 40vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Yu</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                Home
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                Archives
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                Categories
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                Tags
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/">
+                <i class="iconfont icon-link-fill"></i>
+                Links
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                About
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/kprobe-banner.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle">Kprobes 使用与原理介绍</span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2023-11-08 20:43" pubdate>
+          November 8, 2023 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.9k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 mins
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> views
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Kprobes 使用与原理介绍</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>.</p>
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><code>Kprobes</code> (kprobe and kretprobe)是一种Linux的调试机制，用于监控系统内部事件。你可以使用 <code>Kprobes</code> 来解决性能瓶颈、记录特定事件、跟踪问题等。</p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><h3 id="kprobes-接口"><a href="#kprobes-接口" class="headerlink" title="kprobes 接口"></a>kprobes 接口</h3><p>内核源码samples目录下 <a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/master/samples/kprobes/kprobe_example.c">kprobes&#x2F;kprobe_example.c</a> 提供了 <code>Kprobes</code> 测试用例。代码非常简单，主要配置了 <code>struct kprobe</code> 如下几个字段：</p>
+<ul>
+<li>symbol_name</li>
+<li>offset</li>
+<li>pre_handler</li>
+<li>post_handler</li>
+</ul>
+<p>最后调用 <code>register_kprobe()</code> 注册定义的kprobe。</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs reasonml"><span class="hljs-built_in">int</span> register<span class="hljs-constructor">_kprobe(<span class="hljs-params">struct</span> <span class="hljs-params">kprobe</span> <span class="hljs-operator">*</span><span class="hljs-params">p</span>)</span><br>void unregister<span class="hljs-constructor">_kprobe(<span class="hljs-params">struct</span> <span class="hljs-params">kprobe</span> <span class="hljs-operator">*</span><span class="hljs-params">p</span>)</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">kprobe</span> &#123;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">hlist_node</span> <span class="hljs-title">hlist</span>;</span><br><br>    <span class="hljs-comment">/* list of kprobes for multi-handler support */</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> <span class="hljs-title">list</span>;</span><br><br>    <span class="hljs-comment">/*count the number of times this probe was temporarily disarmed */</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> nmissed;<br><br>    <span class="hljs-comment">/* location of the probe point */</span><br>    <span class="hljs-type">kprobe_opcode_t</span> *addr;<br><br>    <span class="hljs-comment">/* Allow user to indicate symbol name of the probe point */</span><br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *symbol_name;<br><br>    <span class="hljs-comment">/* Offset into the symbol */</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> offset;<br><br>    <span class="hljs-comment">/* Called before addr is executed. */</span><br>    <span class="hljs-type">kprobe_pre_handler_t</span> pre_handler;<br><br>    <span class="hljs-comment">/* Called after addr is executed, unless... */</span><br>    <span class="hljs-type">kprobe_post_handler_t</span> post_handler;<br><br>    <span class="hljs-comment">/* Saved opcode (which has been replaced with breakpoint) */</span><br>    <span class="hljs-type">kprobe_opcode_t</span> opcode;<br><br>    <span class="hljs-comment">/* copy of the original instruction */</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">arch_specific_insn</span> <span class="hljs-title">ainsn</span>;</span><br><br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     * Indicates various status flags.</span><br><span class="hljs-comment">     * Protected by kprobe_mutex after this kprobe is registered.</span><br><span class="hljs-comment">     */</span><br>    u32 flags;<br>&#125;;<br></code></pre></td></tr></table></figure>
+<h3 id="kprobe-trace"><a href="#kprobe-trace" class="headerlink" title="kprobe trace"></a>kprobe trace</h3><p>使用方法和基于tracepoint的events类似. 不同的是Kprobes可以probe几乎所有函数（除了标注__kprobes&#x2F;nokprobe_inline  和被标记为 NOKPROBE_SYMBOL的函数），且在系统运行时能够动态添加&#x2F;删除。使用方法详见内核文档 <a target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/latest/trace/kprobetrace.html">kprobetrace</a>。主要是使用如下接口:</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs awk"><span class="hljs-regexp">/sys/</span>kernel<span class="hljs-regexp">/debug/</span>tracing/kprobe_events<br><span class="hljs-regexp">/sys/</span>kernel<span class="hljs-regexp">/debug/</span>tracing<span class="hljs-regexp">/events/</span>kprobes<span class="hljs-regexp">/&lt;EVENT&gt;/</span>enable<br><span class="hljs-regexp">/sys/</span>kernel<span class="hljs-regexp">/debug/</span>tracing/dynamic_events<br></code></pre></td></tr></table></figure>
+
+<h3 id="bpftrace"><a href="#bpftrace" class="headerlink" title="bpftrace"></a>bpftrace</h3><p>bpftrace使用很简单，详见 <a target="_blank" rel="noopener" href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md#1-kprobekretprobe-dynamic-tracing-kernel-level">bpftrace guide</a>。例如，使用 <code>bpftrace</code> 通过  <code>kretprobe</code> 获取 <code>ktime_get</code> 返回的时间：</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ada">sudo bpftrace -e <span class="hljs-symbol">&#x27;kretprobe</span>:ktime_get &#123; printf(<span class="hljs-string">&quot;time: %lld\n&quot;</span>, retval);&#125;&#x27;<br></code></pre></td></tr></table></figure>
+<h2 id="Kprobes在arm64上的实现"><a href="#Kprobes在arm64上的实现" class="headerlink" title="Kprobes在arm64上的实现"></a>Kprobes在arm64上的实现</h2><p>kprobe 和 kretprobe 原理相似，因此本文只分析kprobe流程。</p>
+<h3 id="register-kprobe流程"><a href="#register-kprobe流程" class="headerlink" title="register_kprobe流程"></a>register_kprobe流程</h3><ul>
+<li><code>arch_prepare_kprobe() → arch_prepare_ss_slot()</code>, 拷贝probe点的指令（接下来需要替换probe位置的指令），调用 <code>get_insn_slot()</code> 获取一个slot，按照如下顺序排放：<ul>
+<li>拷贝的probe点的指令</li>
+<li><code>brk 0x6</code></li>
+</ul>
+</li>
+<li><code>arm_kprobe() → arch_arm_kprobe()</code>，probe位置的指令替换为 <code>brk 0x4</code></li>
+</ul>
+<blockquote>
+<p> <code>BRK #&lt;imm&gt;</code>，立即数 <code>imm</code> 会保存会在 <code>ESR_ELx.ISS</code>。<br><img src="/img/ESR_EL1.png" srcset="/img/loading.gif" lazyload alt="ESR, From ARM Architecture Reference Manual D17.2.37"></p>
+</blockquote>
+<h3 id="异常处理流程"><a href="#异常处理流程" class="headerlink" title="异常处理流程"></a>异常处理流程</h3><p>1、执行到probe点后，由于已经替换成了 <code>brk 0x4</code>，执行后陷入el1 debug异常。 <code>call_break_hook</code> 根据 <code>ESR.ISS</code>（0x4）调用 <code>kprobe_breakpoint_handler</code>，然后再根据probe点的 <code>addr</code> 在kprobes的哈希链表找到注册的kprobe结构体，再调用结构体里的 <code>pre_handler()</code> 就完成了。调用栈如下：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">handler_pre</span>+<span class="hljs-number">0</span>x24/<span class="hljs-number">0</span>x70<span class="hljs-meta"> [kprobe_example]</span><br><span class="hljs-attribute">kprobe_breakpoint_handler</span>+<span class="hljs-number">0</span>xc0/<span class="hljs-number">0</span>x174<br><span class="hljs-attribute">call_break_hook</span>+<span class="hljs-number">0</span>x88/<span class="hljs-number">0</span>xa4<br><span class="hljs-attribute">brk_handler</span>+<span class="hljs-number">0</span>x2c/<span class="hljs-number">0</span>x70<br><span class="hljs-attribute">do_debug_exception</span>+<span class="hljs-number">0</span>x6c/<span class="hljs-number">0</span>x110<br><span class="hljs-attribute">el1_dbg</span>+<span class="hljs-number">0</span>x68/<span class="hljs-number">0</span>x80<br><span class="hljs-attribute">el1h_64_sync_handler</span>+<span class="hljs-number">0</span>xb4/<span class="hljs-number">0</span>xd0<br><span class="hljs-attribute">el1h_64_sync</span>+<span class="hljs-number">0</span>x64/<span class="hljs-number">0</span>x68<br></code></pre></td></tr></table></figure>
+
+<p>2、执行完 <code>pre_handler()</code> 后，跳转到之前保存的slot执行，第一条指令就是原来probe点的指令，接下来执行下一条指令 <code>brk 0x6</code> 后再次陷入异常。流程和上文相似，只不过 <code>ESR.ISS</code> 变成了 0x6， 因此 <code>call_break_hook</code> 调用 <code>kprobe_breakpoint_ss_handler</code>，最后执行完 <code>handler_post()</code> 并退出异常，继续正常的代码流程。调用栈如下：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">handler_post</span>+<span class="hljs-number">0</span>x24/<span class="hljs-number">0</span>x50<span class="hljs-meta"> [kprobe_example]</span><br><span class="hljs-attribute">post_kprobe_handler</span>+<span class="hljs-number">0</span>x60/<span class="hljs-number">0</span>xb0<br><span class="hljs-attribute">kprobe_breakpoint_ss_handler</span>+<span class="hljs-number">0</span>x94/<span class="hljs-number">0</span>xa0<br><span class="hljs-attribute">call_break_hook</span>+<span class="hljs-number">0</span>x88/<span class="hljs-number">0</span>xa4<br><span class="hljs-attribute">brk_handler</span>+<span class="hljs-number">0</span>x2c/<span class="hljs-number">0</span>x70<br><span class="hljs-attribute">do_debug_exception</span>+<span class="hljs-number">0</span>x6c/<span class="hljs-number">0</span>x110<br><span class="hljs-attribute">el1_dbg</span>+<span class="hljs-number">0</span>x68/<span class="hljs-number">0</span>x80<br><span class="hljs-attribute">el1h_64_sync_handler</span>+<span class="hljs-number">0</span>xb4/<span class="hljs-number">0</span>xd0<br><span class="hljs-attribute">el1h_64_sync</span>+<span class="hljs-number">0</span>x64/<span class="hljs-number">0</span>x68<br></code></pre></td></tr></table></figure>
+
+<h2 id="Jump-Optimization"><a href="#Jump-Optimization" class="headerlink" title="Jump Optimization"></a>Jump Optimization</h2><p>ToDo</p>
+<h3 id="Safety-Check"><a href="#Safety-Check" class="headerlink" title="Safety Check"></a>Safety Check</h3><h3 id="Preparing-Detour-Buffer"><a href="#Preparing-Detour-Buffer" class="headerlink" title="Preparing Detour Buffer"></a>Preparing Detour Buffer</h3><h3 id="Pre-optimization"><a href="#Pre-optimization" class="headerlink" title="Pre-optimization"></a>Pre-optimization</h3><h2 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://lwn.net/Articles/132196/">An introduction to KProbes</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.arstercz.com/introduction_to_linux_dynamic_tracing/">Linux 系统动态追踪技术介绍</a></li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/kernel/" class="category-chain-item">kernel</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/kernel/">#kernel</a>
+      
+        <a href="/tags/trace/">#trace</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Kprobes 使用与原理介绍</div>
+      <div>https://yuliao0214.github.io/2023/11/08/kprobe/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Yu Liao</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>November 8, 2023</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>Licensed under</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/">
+              <span class="hint--top hint--rounded" aria-label="SA - Share-alike">
+                <i class="iconfont icon-sa"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/07/11/osdi-memory-stall/" title="[OSDI论文阅读] Harvesting Memory-bound CPU Stall Cycles  in Software with MSH">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">[OSDI论文阅读] Harvesting Memory-bound CPU Stall Cycles  in Software with MSH</span>
+                        <span class="visible-mobile">Previous</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2023/05/01/Linux-group-scheduling/" title="Linux进程管理：CFS组调度">
+                        <span class="hidden-mobile">Linux进程管理：CFS组调度</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;Table of Contents</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
